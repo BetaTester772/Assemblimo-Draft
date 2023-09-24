@@ -1,9 +1,4 @@
-import matplotlib.pyplot as plt
-import networkx as nx
 import random
-import sys
-
-sys.setrecursionlimit(10 ** 7)  # 재귀 호출 제한을 늘림
 
 
 class Node:
@@ -15,25 +10,51 @@ class Node:
 
 def generate_tree(height):
     root = Node(random.randint(1, 10), 0)
-    level_nodes = {0: [root]}  # 레벨별로 노드를 그룹화
+    level_children = {0: []}  # 레벨별 자식 노드를 추적
 
-    for level in range(height - 1):
-        level_nodes[level + 1] = []  # 다음 레벨의 노드 그룹을 초기화
-        for node in level_nodes[level]:
+    nodes_to_expand = [root]
+    while nodes_to_expand:
+        current_node = nodes_to_expand.pop(0)
+        if current_node.level < height - 1:
+            level_children[current_node.level + 1] = level_children.get(current_node.level + 1, [])
             for _ in range(3):  # 각 노드에 최대 3개의 자식 노드를 추가
-                # 현재 레벨의 노드 그룹에서 무작위로 노드를 선택하여 중복을 허용
-                if level_nodes[level + 1] and random.random() < 0.2:
-                    child = random.choice(level_nodes[level + 1])
+                if level_children[current_node.level + 1] and random.random() < 0.5:
+                    # 같은 레벨의 자식 중에서 중복을 허용하여 선택
+                    child = random.choice(level_children[current_node.level + 1])
                 else:
-                    child = Node(random.randint(1, 10), level + 1)
-                node.children.append(child)
-                level_nodes[level + 1].append(child)  # 다음 레벨의 노드 그룹에 자식 노드를 추가
+                    child = Node(random.randint(1, 10), current_node.level + 1)
+                    level_children[current_node.level + 1].append(child)
+                    nodes_to_expand.append(child)
+                current_node.children.append(child)
 
     return root
 
 
+results = []
+
+
+def calculate_sum(node, current_sum=0):
+    global results
+    current_sum += node.value  # 현재 노드의 값 더하기
+    if not node.children:  # Leaf 노드에 도달하면 합계 출력
+        results.append(current_sum)
+        print(f'Sum to leaf node: {current_sum}')
+    for child in node.children:
+        calculate_sum(child, current_sum)  # 재귀적으로 자식 노드에 대해 합계 계산
+
+
+root = generate_tree(5)
+calculate_sum(root)
+
+print(results)
+print(len(results))
+
+import networkx as nx
+import matplotlib.pyplot as plt
+
+
 def draw_tree(node, graph=None, pos=None, level=0,
-              width=2., vert_gap=0.2, vert_shift=0.,
+              width=2., vert_gap=0.4, vert_shift=0.,
               xcenter=0.5, root=None, parsed=[]):
     if graph is None:
         graph = nx.DiGraph()
@@ -51,38 +72,12 @@ def draw_tree(node, graph=None, pos=None, level=0,
             graph.add_edge(node, child)
             graph, pos, parsed = draw_tree(child, graph=graph, pos=pos,
                                            level=level + 1, width=width,
-                                           xcenter=xcenter_child, parsed=parsed)
+                                           xcenter=xcenter_child, parsed=parsed, )
     return graph, pos, parsed
 
 
-results = []
-
-
-def calculate_sum(node, current_sum=0):
-    global results
-    current_sum += node.value  # 현재 노드의 값 더하기
-    if not node.children:  # Leaf 노드에 도달하면 합계 출력
-        results.append(current_sum)
-        print(f'Sum to leaf node: {current_sum}')
-    for child in node.children:
-        calculate_sum(child, current_sum)  # 재귀적으로 자식 노드에 대해 합계 계산
-
-
+# Now to use this function to draw your tree:
 root = generate_tree(5)
 graph, pos, parsed = draw_tree(root)
-
-# Draw nodes and edges
-nx.draw(graph, pos, with_labels=False, arrows=False)
-
-# Draw node labels
-labels = {node: node.value for node in graph.nodes()}
-nx.draw_networkx_labels(graph, pos, labels)
-
+nx.draw(graph, pos, with_labels=True, labels=nx.get_node_attributes(graph, 'value'))
 plt.show()
-
-# Calculating sum
-calculate_sum(root)
-print(results)
-print(f'Total number of paths: {len(results)}',
-      f'(Max: {max(results)}, Min: {min(results)})',
-      f'Average: {sum(results) / len(results)}', sep='\n')
