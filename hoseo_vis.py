@@ -1,4 +1,7 @@
 import random
+import networkx as nx
+import matplotlib.pyplot as plt
+import os
 
 
 class Node:
@@ -53,7 +56,7 @@ def calculate_sum(node, current_sum=0):
     current_sum += node.value  # 현재 노드의 값 더하기
     if not node.children:  # Leaf 노드에 도달하면 합계 출력
         results.append(current_sum)
-        # print(f'Sum to leaf node ({node}): {current_sum}')
+        print(f'Sum to leaf node ({node}): {current_sum}')
     for child in node.children:
         calculate_sum(child, current_sum)  # 재귀적으로 자식 노드에 대해 합계 계산
 
@@ -65,11 +68,48 @@ root = generate_tree(5)
 calculate_sum(root)
 
 print(results)
+print(len(results))
 print(f"max: {max(results)}")
 print(f"min: {min(results)}")
 print(f"avg: {sum(results) / len(results)}")
 
-results.sort(reverse=True)
+
+def draw_tree(node, graph=None, pos=None, level=0,
+              width=2., vert_gap=0.4, vert_shift=0.,
+              xcenter=0.5, root=None, parsed=[]):
+    if graph is None:
+        graph = nx.DiGraph()
+    if pos is None:
+        pos = {node: (xcenter, 1 - level * vert_gap - vert_shift)}
+    else:
+        pos[node] = (xcenter, 1 - level * vert_gap - vert_shift)
+    parsed.append(node)
+
+    if node.children:
+        children_num = len(node.children)
+        xcenter_child = xcenter - width / 2 - ((1 - children_num) / 2) * width / (children_num + 1)
+        for i, child in enumerate(node.children):
+            xcenter_child += (i + 1) * width / (children_num + 1)
+            graph.add_edge(node, child)
+            graph, pos, parsed = draw_tree(child, graph=graph, pos=pos,
+                                           level=level + 1, width=width,
+                                           xcenter=xcenter_child, parsed=parsed, )
+    return graph, pos, parsed
+
+
+# Now to use this function to draw your tree:
+graph, pos, parsed = draw_tree(root)
+labels = {node: str(node.value) for node in parsed}  # 각 노드에 대한 레이블 생성
+nx.draw(graph, pos, with_labels=True, labels=labels)
 for i in range(1, 6):
-    # 평균 소수젓 아래 3째 자리까지 출력
-    print(f"{sum(results[:i])/i:.3f}", results[:i])
+    print(sum(results[:i]) / i, results[:i])
+
+# save plot
+os.makedirs('plots', exist_ok=True)
+# check files in plots directory
+print(os.listdir('plots'))
+
+plt.savefig(f'plots/plot_{len(os.listdir("plots"))}.png')
+plt.show()
+
+results.sort(reverse=True)
