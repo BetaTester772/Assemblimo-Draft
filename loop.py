@@ -86,8 +86,8 @@ def calculate_sum(node, current_sum=0, probability=1, path=[]):
     current_sum += node.value
     path.append(node)  # Add the current node to the path
     if not node.children:
-        # if path in already:
-        #     return
+        if path in already:
+            return
         results.append((current_sum, probability))
         check += probability
         # print(f'Sum to leaf node ({node}): {current_sum}, Probability: {probability:.4f}')
@@ -99,73 +99,60 @@ def calculate_sum(node, current_sum=0, probability=1, path=[]):
         calculate_sum(child, current_sum, probability * child_probability, path.copy())  # Pass a copy of the path
 
 
-max_value = 10
-min_value = 1
+def main():
+    global nodes
+    global next_node_id
+    global results
+    global leaf_results
+    global check
+    global already
 
-root = generate_tree(10)
+    leaf_results_maxes = []
+    passed1 = 0
+    passed2 = 0
 
-for node in nodes:
-    node.children = list(set(node.children))
-    node.probabilities = list(set(node.probabilities))
+    for _ in range(10):
+        # init
 
-calculate_sum(root)
+        nodes = []
+        next_node_id = 1
 
-sums, probabilities = zip(*results)
-print(f"max: {max(sums)}")
-print(f"min: {min(sums)}")
-print(f"avg: {sum(sums) / len(sums):.3f}")
+        results = []
+        leaf_results = []
 
-print(check)
+        check = 0
 
-# results.sort(reverse=True)
-# for i in range(1, 6):
-#     # 평균 소수젓 아래 3째 자리까지 출력
-#     print(f"{sum(results[:i]) / i:.3f}", results[:i])
-#
-# for node in nodes:
-#     print(node, list(set(node.children)))
-for node in nodes:
-    print(node, node.children, node.probabilities, sum(node.probabilities))
+        already = []
 
-# 두번째 코드의 draw_tree 함수 병합
-import networkx as nx
-import matplotlib.pyplot as plt  # matplotlib 추가
+        if len(nodes) == 0:
+            passed2 += 1
 
-plt.figure(figsize=(10, 6))  # 원하는 크기로 조절
+        root = generate_tree(10)
 
+        # for node in nodes:
+        #     node.children = list(set(node.children))
+        #     node.probabilities = list(set(node.probabilities))
 
-def draw_tree(node, graph=None, pos=None, level=0,
-              width=2., vert_gap=0.4, vert_shift=0.,
-              xcenter=0.5, root=None, parsed=[], edge_labels={}):
-    if graph is None:
-        graph = nx.DiGraph()
-    if pos is None:
-        pos = {node: (xcenter, 1 - level * vert_gap - vert_shift)}
-    else:
-        pos[node] = (xcenter, 1 - level * vert_gap - vert_shift)
-    parsed.append(node)
+        calculate_sum(root)
 
-    if node.children:
-        children_num = len(node.children)
-        xcenter_child = xcenter - width / 2 - ((1 - children_num) / 2) * width / (children_num + 1)
-        for i, child in enumerate(node.children):
-            xcenter_child += (i + 1) * width / (children_num + 1)
-            graph.add_edge(node, child)
-            edge_labels[(node, child)] = f'{node.probabilities[i]:.2f}'  # 확률 레이블 추가
-            graph, pos, parsed, edge_labels = draw_tree(child, graph=graph, pos=pos,
-                                                        level=level + 1, width=width,
-                                                        xcenter=xcenter_child, parsed=parsed,
-                                                        edge_labels=edge_labels)  # edge_labels 인자 추가
-    return graph, pos, parsed, edge_labels  # edge_labels 반환 추가
+        print("check:", check)
+        if abs(check - 1) < 0.01:
+            passed1 += 1
+
+        for node in nodes:
+            print(node, node.children, node.probabilities, sum(node.probabilities))
+
+        print(leaf_results)
+        print(max(leaf_results))
+        leaf_results_maxes.append(max(leaf_results))
+    print(leaf_results_maxes)
+    print(sum(leaf_results_maxes) / len(leaf_results_maxes))
+    print(passed1)
+    print(passed2)
 
 
-# Now to use this function to draw your tree:
-graph, pos, parsed, edge_labels = draw_tree(root)  # edge_labels 반환 받기
-# labels = {node: f'{node.id}: {node.value}' for node in parsed}  # 각 노드에 대한 레이블 생성
-labels = {node: f'{node.value}' for node in parsed}  # 각 노드에 대한 레이블 생성
-nx.draw(graph, pos, with_labels=True, labels=labels)
-nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=8)  # 원하는 크기로 조절
-plt.show()  # 트리 그래프를 출력하기 위한 코드 추가
+if __name__ == '__main__':
+    max_value = 100
+    min_value = 10
 
-print(leaf_results)
-print(max(leaf_results))
+    main()
