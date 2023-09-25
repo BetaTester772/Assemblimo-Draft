@@ -22,9 +22,10 @@ def generate_tree(height):
     root = Node(random.randint(min_value, max_value), 0)
     level_children = {0: []}  # 레벨별 자식 노드를 추적
     nodes.append(root)
-
+    i = 0
     nodes_to_expand = [root]
     while nodes_to_expand:
+        i += 1
         current_node = nodes_to_expand.pop(0)
         if current_node.level < height - 1:
             level_children[current_node.level + 1] = level_children.get(current_node.level + 1, [])
@@ -38,7 +39,7 @@ def generate_tree(height):
                         choice = random.choice(level_children[current_node.level + 1])
                     child = choice
                 else:
-                    child = Node(random.randint(min_value, max_value), current_node.level + 1)
+                    child = Node(, current_node.level + 1)
                     level_children[current_node.level + 1].append(child)
                     nodes_to_expand.append(child)
                     nodes.append(child)
@@ -73,6 +74,7 @@ print(f"max: {max(results)}")
 print(f"min: {min(results)}")
 print(f"avg: {sum(results) / len(results)}")
 
+plt.figure(figsize=(10, 6))  # 원하는 크기로 조절
 
 def draw_tree(node, graph=None, pos=None, level=0,
               width=2., vert_gap=0.4, vert_shift=0.,

@@ -1,15 +1,20 @@
 import random
 
+next_node_id = 1
+
 
 class Node:
     def __init__(self, value, level):
+        global next_node_id  # Access the global next_node_id variable
+        self.id = next_node_id  # Assign the next_node_id value to this node's id
+        next_node_id += 1  # Increment next_node_id for the next node
         self.value = value
         self.children = []
         self.probabilities = []  # 각 자식 노드로의 확률을 저장하는 리스트
         self.level = level
 
     def __str__(self):
-        return str(self.value)
+        return f'{self.id}'  # Include the node id in the string representation
 
 
 nodes = []
@@ -28,7 +33,7 @@ def generate_tree(height):
             level_children[current_node.level + 1] = level_children.get(current_node.level + 1, [])
             chose_nodes = []
             total_probability = 0
-            if len(current_node.children) > 3:
+            if len(current_node.children) >= 3:
                 continue
             for _ in range(3):  # 각 노드에 최대 3개의 자식 노드를 추가
                 if level_children[current_node.level + 1] and random.random() < 0.5 and len(chose_nodes) < len(
@@ -69,17 +74,22 @@ results = []
 
 check = 0
 
+already = []
 
 def calculate_sum(node, current_sum=0, probability=1, path=[]):
     global results
     global check
+    global already
     current_sum += node.value
     path.append(node)  # Add the current node to the path
     if not node.children:
+        if path in already:
+            return
         results.append((current_sum, probability))
         check += probability
-        print(f'Sum to leaf node ({node}): {current_sum}, Probability: {probability:.4f}')
-        print('Path:', ' -> '.join(str(n) for n in path))  # Print the path to the leaf node
+        # print(f'Sum to leaf node ({node}): {current_sum}, Probability: {probability:.4f}')
+        print('Path:', ' -> '.join(str(n) for n in path), f"Probability: {probability:.4f}")  # Print the path to the leaf node
+        already.append(path)
     for child, child_probability in zip(node.children, node.probabilities):
         calculate_sum(child, current_sum, probability * child_probability, path.copy())  # Pass a copy of the path
 
@@ -143,7 +153,7 @@ def draw_tree(node, graph=None, pos=None, level=0,
 
 # Now to use this function to draw your tree:
 graph, pos, parsed, edge_labels = draw_tree(root)  # edge_labels 반환 받기
-labels = {node: str(node.value) for node in parsed}  # 각 노드에 대한 레이블 생성
+labels = {node: f'{node.id}: {node.value}' for node in parsed}  # 각 노드에 대한 레이블 생성
 nx.draw(graph, pos, with_labels=True, labels=labels)
 nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=8)  # 원하는 크기로 조절
 plt.show()  # 트리 그래프를 출력하기 위한 코드 추가
