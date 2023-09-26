@@ -111,7 +111,7 @@ def main():
     passed1 = 0
     passed2 = 0
 
-    for _ in range(10):
+    for _ in range(loop_time):
         # init
 
         nodes = []
@@ -127,13 +127,13 @@ def main():
         if len(nodes) == 0:
             passed2 += 1
 
-        root = generate_tree(10)
+        root = generate_tree(tree_lenght)
 
         # for node in nodes:
         #     node.children = list(set(node.children))
         #     node.probabilities = list(set(node.probabilities))
 
-        calculate_sum(root)
+        calculate_sum(root, 0, 1, [])
 
         print("check:", check)
         if abs(check - 1) < 0.01:
@@ -147,12 +147,17 @@ def main():
         leaf_results_maxes.append(max(leaf_results))
     print(leaf_results_maxes)
     print(sum(leaf_results_maxes) / len(leaf_results_maxes))
-    print(passed1)
-    print(passed2)
+    if loop_time != passed1:
+        raise Exception("passed1 != loop_time")
+    if loop_time != passed2:
+        raise Exception("passed2 != loop_time")
 
 
 if __name__ == '__main__':
     max_value = 100
     min_value = 10
+
+    loop_time = 10
+    tree_lenght = 10
 
     main()

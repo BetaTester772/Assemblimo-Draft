@@ -99,8 +99,8 @@ def calculate_sum(node, current_sum=0, probability=1, path=[]):
         calculate_sum(child, current_sum, probability * child_probability, path.copy())  # Pass a copy of the path
 
 
-max_value = 10
-min_value = 1
+max_value = 1000
+min_value = 100
 
 root = generate_tree(10)
 
@@ -125,6 +125,7 @@ print(check)
 # for node in nodes:
 #     print(node, list(set(node.children)))
 for node in nodes:
+    break  # TODO
     print(node, node.children, node.probabilities, sum(node.probabilities))
 
 # 두번째 코드의 draw_tree 함수 병합
@@ -167,5 +168,5 @@ nx.draw(graph, pos, with_labels=True, labels=labels)
 nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=8)  # 원하는 크기로 조절
 plt.show()  # 트리 그래프를 출력하기 위한 코드 추가
 
-print(leaf_results)
+# print(leaf_results) TODO
 print(max(leaf_results))
